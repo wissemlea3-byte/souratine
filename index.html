@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>رحلتي مع سورة التين</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:#edf5f1;font-family:Tahoma,Arial,sans-serif;color:#243c36;line-height:1.8}
+.app{max-width:900px;margin:auto;background:#f1f8f5;padding:16px;border-radius:18px}
+.hero{background:linear-gradient(135deg,#176c5a,#279b79);color:white;text-align:center;padding:20px 12px;border-radius:16px}
+.hero h1{font-size:27px;margin:0}.hero p{margin:4px 0}
+.tabs{display:flex;gap:8px;margin:15px 0;flex-wrap:wrap}
+button{font-family:inherit;cursor:pointer}
+.tab{flex:1;min-width:100px;background:white;border:1px solid #cbded5;border-radius:10px;padding:10px;color:#176c5a;font-weight:bold}
+.tab.active{background:#176c5a;color:white}
+.panel{background:white;border:1px solid #d8e8df;border-radius:15px;padding:16px;margin-bottom:14px}
+h2{font-size:20px;color:#176c5a;margin:0 0 10px}
+.basmala{text-align:center;font-family:"Traditional Arabic",serif;font-size:30px;color:#245d49;margin:8px 0 18px}
+.quran{font-family:"Traditional Arabic","Noto Naskh Arabic",serif;font-size:32px;line-height:2.2;text-align:justify;color:#172d27}
+.word{display:inline-block;cursor:pointer;padding:0 3px;border-radius:7px}
+.word:hover,.word.selected{background:#d9f2e5;color:#08744e}
+.ayah-num{display:inline-flex;align-items:center;justify-content:center;border:1px solid #bd9b55;color:#966c25;border-radius:50%;width:29px;height:29px;font:14px Tahoma;margin:0 5px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.action{background:#176c5a;color:white;border:0;border-radius:10px;padding:10px 15px;font-weight:bold}
+.secondary{background:#e4f2eb;color:#176c5a;border:1px solid #c8e2d4}
+.status{background:#edf6f1;padding:10px;border-radius:9px;margin-top:10px;font-size:14px;min-height:42px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{border:1px solid #c7dce9;padding:10px;text-align:right}
+th{background:#e4f1fa;color:#225b88}
+tbody tr{cursor:pointer}tbody tr:hover{background:#eff8f2}
+td:first-child{font-weight:bold;color:#176c5a;width:32%}
+.meaning{background:#f1f8f5;border-radius:12px;padding:14px;margin-top:12px;min-height:75px}
+.meaning strong{color:#176c5a;font-size:18px}
+.quiz-option{display:block;width:100%;text-align:right;background:#f5f8f6;border:1px solid #d5e3db;border-radius:9px;padding:11px;margin:8px 0;color:#263d33}
+.feedback{font-weight:bold;margin-top:10px}
+footer{text-align:center;color:#668276;font-size:12px;padding:7px}
+[hidden]{display:none!important}
+@media(max-width:520px){body{padding:7px}.app{padding:9px}.quran{font-size:26px}table{font-size:12px}th,td{padding:7px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="hero">
+<div style="font-size:35px">🌿 📖 🌿</div>
+<h1>رحلتي مع سورة التين</h1>
+<p>أقرأ، أستمع، أتعلم، وأختبر معلوماتي</p>
+<div style="font-size:13px">سورة مكية • 8 آيات</div>
+</header>
+
+<nav class="tabs" aria-label="أقسام المنصة">
+<button class="tab active" data-tab="read">📖 القراءة</button>
+<button class="tab" data-tab="words">📚 شرح الكلمات</button>
+<button class="tab" data-tab="quiz">⭐ اختبر نفسي</button>
+</nav>
+
+<section class="panel" id="read">
+<h2>📖 سورة التين</h2>
+<div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+<div class="quran" id="quran"></div>
+<div class="controls">
+<button class="action" id="playAll">▶ استمع إلى السورة كاملة</button>
+<button class="action secondary" id="pause">⏸ إيقاف</button>
+<button class="action secondary" id="replay">↻ إعادة</button>
+</div>
+<div class="status" id="audioStatus" aria-live="polite">👆 انقر على أي كلمة لسماع نطقها منفردة.</div>
+<p style="font-size:12px;color:#71837a">انقر على الكلمة للاستماع إليها، أو شغّل الآيات بالتتابع. يتطلب الصوت اتصالًا بالإنترنت.</p>
+</section>
+
+<section class="panel" id="words" hidden>
+<h2>📚 شرح الكلمات</h2>
+<p>انقر على الكلمة لتتعرف على معناها.</p>
+<table>
+<thead><tr><th>الكلمة</th><th>شرحها</th></tr></thead>
+<tbody id="glossary"></tbody>
+</table>
+<div class="meaning" id="meaning">💡 اختر كلمة من الجدول ليظهر شرحها هنا.</div>
+</section>
+
+<section class="panel" id="quiz" hidden>
+<h2>⭐ هيا نختبر معلوماتنا!</h2>
+<div id="quizArea"></div>
+</section>
+<footer>🌱 بالتعلم نرتقي ونزداد إيمانًا ومعرفة</footer>
+</div>
+
+<script>
+(() => {
+const verses = [
+["وَالتِّينِ","وَالزَّيْتُونِ"],
+["وَطُورِ","سِينِينَ"],
+["وَهَٰذَا","الْبَلَدِ","الْأَمِينِ"],
+["لَقَدْ","خَلَقْنَا","الْإِنْسَانَ","فِي","أَحْسَنِ","تَقْوِيمٍ"],
+["ثُمَّ","رَدَدْنَاهُ","أَسْفَلَ","سَافِلِينَ"],
+["إِلَّا","الَّذِينَ","آمَنُوا","وَعَمِلُوا","الصَّالِحَاتِ","فَلَهُمْ","أَجْرٌ","غَيْرُ","مَمْنُونٍ"],
+["فَمَا","يُكَذِّبُكَ","بَعْدُ","بِالدِّينِ"],
+["أَلَيْسَ","اللَّهُ","بِأَحْكَمِ","الْحَاكِمِينَ"]
+];
+const meanings = [
+["مَكِّيَّة","نزلت على النبي ﷺ في مكة المكرمة قبل الهجرة."],
+["أُقْسِم","حلف."],
+["مَنَافِع","فوائد."],
+["الطُّور","جبل في سيناء كلّم الله عنده نبيه موسى عليه السلام."],
+["الْبَلَدِ الْأَمِين","مكة المكرمة، وهي بلد آمن."],
+["أَحْكَمِ الْحَاكِمِينَ","أعدل الحاكمين وأعلمهم."],
+["يَظْلِم","يأخذ حق غيره أو ينقص منه."],
+["يُجَازِي","يكافئ."],
+["أَجْر","ثواب وجزاء."]
+];
+const quran = document.getElementById("quran");
+let audio = new Audio(), queue = [], queueIndex = 0, playingAll = false;
+const status = document.getElementById("audioStatus");
+
+verses.forEach((verse, i) => {
+  verse.forEach((word, j) => {
+    const span = document.createElement("span");
+    span.className = "word";
+    span.textContent = word + " ";
+    span.title = "انقر لسماع الكلمة";
+    span.addEventListener("click", () => playWord(i + 1, j + 1, span));
+    quran.appendChild(span);
+  });
+  const number = document.createElement("span");
+  number.className = "ayah-num";
+  number.textContent = i + 1;
+  quran.appendChild(number);
+  quran.appendChild(document.createTextNode(" "));
+});
+
+function stopPlayback() {
+  playingAll = false;
+  queue = [];
+  audio.pause();
+  audio.currentTime = 0;
+}
+function wordAudioUrl(ayah, word) {
+  return `https://audio.qurancdn.com/wbw/095_${String(ayah).padStart(3,"0")}_${String(word).padStart(3,"0")}.mp3`;
+}
+function verseAudioUrl(ayah) {
+  return `https://audio.qurancdn.com/Alafasy/mp3/095${String(ayah).padStart(3,"0")}.mp3`;
+}
+function playWord(ayah, word, element) {
+  stopPlayback();
+  document.querySelectorAll(".word").forEach(el => el.classList.remove("selected"));
+  element.classList.add("selected");
+  status.textContent = "🔊 جارٍ تشغيل الكلمة...";
+  audio.src = wordAudioUrl(ayah, word);
+  audio.onended = () => {
+    element.classList.remove("selected");
+    status.textContent = "انتهى الاستماع إلى الكلمة. انقر على كلمة أخرى.";
+  };
+  audio.onerror = () => {
+    element.classList.remove("selected");
+    status.textContent = "تعذر تحميل صوت الكلمة. جرّب الاستماع إلى الآية كاملة.";
+  };
+  audio.play().catch(() => status.textContent = "تعذر تشغيل الصوت. تحقق من اتصال الإنترنت.");
+}
+function playNextVerse() {
+  if (!playingAll || queueIndex >= queue.length) {
+    playingAll = false;
+    status.textContent = "🌟 أحسنت! انتهينا من الاستماع إلى سورة التين.";
+    return;
+  }
+  const ayah = queue[queueIndex];
+  status.textContent = `🔊 الاستماع إلى الآية ${ayah} من 8`;
+  audio.src = verseAudioUrl(ayah);
+  audio.onended = () => { queueIndex++; playNextVerse(); };
+  audio.onerror = () => {
+    playingAll = false;
+    status.textContent = "تعذر تحميل التلاوة. تحقق من اتصال الإنترنت.";
+  };
+  audio.play().catch(() => {
+    playingAll = false;
+    status.textContent = "تعذر تشغيل الصوت. حاول مجددًا.";
+  });
+}
+function startFullRecitation() {
+  stopPlayback();
+  queue = [1,2,3,4,5,6,7,8];
+  queueIndex = 0;
+  playingAll = true;
+  playNextVerse();
+}
+document.getElementById("playAll").addEventListener("click", startFullRecitation);
+document.getElementById("replay").addEventListener("click", startFullRecitation);
+document.getElementById("pause").addEventListener("click", () => {
+  playingAll = false;
+  audio.pause();
+  status.textContent = "⏸ تم إيقاف التلاوة مؤقتًا.";
+});
+
+const tbody = document.getElementById("glossary");
+meanings.forEach(([word, meaning]) => {
+  const row = document.createElement("tr");
+  const wordCell = document.createElement("td");
+  const meaningCell = document.createElement("td");
+  wordCell.textContent = word;
+  meaningCell.textContent = meaning;
+  row.append(wordCell, meaningCell);
+  row.addEventListener("click", () => {
+    const box = document.getElementById("meaning");
+    box.replaceChildren();
+    const strong = document.createElement("strong");
+    strong.textContent = word;
+    const p = document.createElement("p");
+    p.textContent = meaning;
+    box.append(strong, p);
+  });
+  tbody.appendChild(row);
+});
+
+const questions = [
+{q:"كم عدد آيات سورة التين؟",a:["7 آيات","8 آيات","10 آيات"],c:1},
+{q:"ما معنى كلمة (أقسم)؟",a:["حلف","كتب","قرأ"],c:0},
+{q:"ما المقصود بالطور؟",a:["نهر","جبل في سيناء","مدينة"],c:1},
+{q:"ما معنى (منافع)؟",a:["أضرار","فوائد","أحزان"],c:1},
+{q:"ما معنى (أجر)؟",a:["ثواب وجزاء","طعام","مال فقط"],c:0},
+{q:"ما معنى (يجازي)؟",a:["يعاقب دائمًا","يكافئ","ينسى"],c:1},
+{q:"أين نزلت سورة التين؟",a:["المدينة","مكة","القدس"],c:1},
+{q:"ما معنى (أحكم الحاكمين)؟",a:["أعدل الحاكمين وأعلمهم","أقوى الناس","أسرع الناس"],c:0}
+];
+let questionIndex = 0, score = 0, answered = false;
+function showQuestion() {
+  const area = document.getElementById("quizArea");
+  area.replaceChildren();
+  if (questionIndex >= questions.length) {
+    const result = document.createElement("div");
+    result.innerHTML = `<div style="text-align:center;font-size:24px">🏆</div><h3 style="text-align:center">انتهى الاختبار!</h3><p style="text-align:center">نتيجتك: ${score} من ${questions.length}</p>`;
+    const again = document.createElement("button");
+    again.className = "action";
+    again.textContent = "إعادة الاختبار ↻";
+    again.onclick = () => { questionIndex = 0; score = 0; showQuestion(); };
+    area.append(result, again);
+    return;
+  }
+  answered = false;
+  const q = questions[questionIndex];
+  const progress = document.createElement("p");
+  progress.textContent = `السؤال ${questionIndex + 1} من ${questions.length}`;
+  const title = document.createElement("h3");
+  title.textContent = q.q;
+  area.append(progress, title);
+  q.a.forEach((answer, i) => {
+    const button = document.createElement("button");
+    button.className = "quiz-option";
+    button.textContent = answer;
+    button.onclick = () => {
+      if (answered) return;
+      answered = true;
+      const feedback = document.createElement("p");
+      feedback.className = "feedback";
+      if (i === q.c) {
+        score++;
+        feedback.style.color = "#16804d";
+        feedback.textContent = "✔ إجابة صحيحة، أحسنت!";
+      } else {
+        feedback.style.color = "#b4493e";
+        feedback.textContent = "✖ الإجابة الصحيحة: " + q.a[q.c];
+      }
+      const next = document.createElement("button");
+      next.className = "action";
+      next.style.marginTop = "10px";
+      next.textContent = questionIndex === questions.length - 1 ? "عرض النتيجة" : "السؤال التالي ←";
+      next.onclick = () => { questionIndex++; showQuestion(); };
+      area.append(feedback, next);
+    };
+    area.appendChild(button);
+  });
+}
+showQuestion();
+
+document.querySelectorAll(".tab").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+    button.classList.add("active");
+    ["read","words","quiz"].forEach(id => {
+      document.getElementById(id).hidden = id !== button.dataset.tab;
+    });
+  });
+});
+})();
+</script>
+</body>
+</html>
